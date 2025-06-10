@@ -1,9 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission  
 from django.db import models
 
-from equipo.models import Equipo
-
-
 class Usuario(AbstractUser):   
     nombre = models.CharField(max_length=30)  
     apellido = models.CharField(max_length=30)  

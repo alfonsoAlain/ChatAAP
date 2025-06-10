@@ -4,8 +4,8 @@ from django.http import JsonResponse, Http404
 from django.forms import ValidationError
 from rest_framework.response import Response
 from rest_framework import viewsets, status, generics
+from rest_framework.reverse import reverse
 
-from accion.models import Accion
 from .models import Usuario
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from .serializers import UsuarioSerializer, RegisterSerializer, UsuarioRankingSerializer
@@ -116,13 +116,6 @@ class UsuarioRankingView(generics.ListAPIView):
         usuarios = super().get_queryset()
         respuesta = sorted(usuarios, key=self.calcular_valor_acciones, reverse=True)
         return respuesta
-
-    def calcular_valor_acciones(self, usuario):
-        # Realiza una consulta para obtener las acciones del usuario
-        acciones = Accion.objects.filter(usuario=usuario)
-        # Calcula el valor total de las acciones
-        total = sum(a.cantidad * a.equipo.valor_inicial_accion for a in acciones)
-        return total + usuario.cartera.saldo
 
 
 class CustomConfirmEmailView(ConfirmEmailView):
