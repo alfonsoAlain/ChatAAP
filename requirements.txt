@@ -1,0 +1,27 @@
+#pip freeze > requirements.txt
+#August 07, 2024 - 09:46:43
+#Django version 4.2.14, using settings 'api.settings'
+dj-rest-auth==6.0.0
+Django==4.2.14
+django-allauth==64.0.0
+django-cors-headers==4.4.0
+djangorestframework==3.15.2
+djangorestframework-simplejwt==5.3.1
+idna==3.7
+mysqlclient==2.2.4
+pillow==10.4.0
+PyJWT==2.9.0
+requests==2.32.3
+sqlparse==0.5.1
+typing_extensions==4.12.2
+tzdata==2024.1
+urllib3==2.2.2
+gunicorn
+celery==5.4.0
+channels==4.1.0
+#uvicorn==0.32.1
+uvicorn[standard]
+
+python-dotenv
+django-celery-beat
+django-celery-results
