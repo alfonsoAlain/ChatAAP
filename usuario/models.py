@@ -20,8 +20,13 @@ class Usuario(AbstractUser):
         Permission,  
         related_name='usuarios',
         blank=True  
-    )   
+    )
 
+    profile_image = models.ImageField(
+        upload_to='profile_images/',
+        blank=True,
+        null=True
+    )
     # Sobrescribir el atributo first_name  
     @property  
     def first_name(self):  

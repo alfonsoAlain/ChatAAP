@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-i5u=z(7gz4xu!k9vo@vtjst*+v5#_zazgu=uvu30&zk!7ovw^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '5.79.126.239', "invesport-latam.com"]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', "10.0.2.2"]
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:4200", "https://invesport-latam.com"]
 CORS_ALLOW_ALL_ORIGINS = True
@@ -85,18 +85,7 @@ INSTALLED_APPS = [
 
     # Apps ----
     'usuario',
-    # 'equipo',
-    # 'torneo',
-    # 'cartera',
-    # 'partido',
-    # 'accion',
-    # 'configuracion',
-    # 'transaccion_pendiente',
-    # 'notificacion',
-    # 'partido_votacion_usuario',
-    # 'historico_equipo',
-    # 'historico_usuario',
-    # 'ranking_usuario',
+    'message',
 ]
 
 SITE_ID = 1
@@ -367,3 +356,6 @@ LOGGING = {
         },
     },
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

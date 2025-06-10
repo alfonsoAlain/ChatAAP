@@ -20,20 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
-urlpatterns = [
+urlpatterns = ([
     path('admin/', admin.site.urls),
-    path('api/v1/usuarios/', include('usuario.urls')),  # Prefijo para la app usuario
-    # path('api/v1/equipos/', include('equipo.urls')),    # Prefijo para la app equipo
-    # path('api/v1/torneos/', include('torneo.urls')),    # Prefijo para la app torneo
-    # path('api/v1/carteras/', include('cartera.urls')),    # Prefijo para la app cartera
-    # path('api/v1/partidos/', include('partido.urls')),    # Prefijo para la app partido
-    # path('api/v1/', include('transaccion_pendiente.urls')),  # Prefijo para la app transaccion_pendiente
-    # path('api/v1/acciones/', include('accion.urls')),    # Prefijo para la app accion
-    # path('api/v1/notificaciones/', include('notificacion.urls')),    # Prefijo para la app notificacion
-    # path('api/v1/', include('partido_votacion_usuario.urls')),    # Prefijo para la app partido_votacion_usuario
-    # path('api/v1/historico-ranking-usuarios/', RankingUsuarioListView.as_view(), name='historico-ranking-usuarios'),
-    # path('api/v1/ranking-usuarios/', UsuarioRankingView.as_view(), name='ranking-usuarios'),
-    # # path('api/v1/ranking-usuarios/calculate/', UsuarioRankingCreateView.as_view(), name='ranking-usuarios-calculate'),
-    # path('api/v1/historico-usuarios/', include('historico_usuario.urls')),
-    # path('api/v1/ranking-usuario-fecha/', RankingUsuarioFechaView.as_view(), name='ranking-usuario-fecha'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('api/v1/', include('usuario.urls')),  # Prefijo para la app usuario
+    path('api/v1/', include('message.urls')),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)+
+  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

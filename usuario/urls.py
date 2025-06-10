@@ -13,7 +13,7 @@ from django.contrib.auth.views import PasswordResetDoneView
 
 
 router = DefaultRouter()
-router.register(r'', UsuarioViewSet)
+router.register(r'usuarios', UsuarioViewSet)
 
 
 urlpatterns = [
