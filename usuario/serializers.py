@@ -11,6 +11,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = [
+            'id',
             'nombre',
             'apellido',
             'documento',
@@ -82,7 +83,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['username', 'email', 'password', 'nombre', 'apellido', 'documento', 'celular', 'telefono',
-                  'accept_terms_conditions']
+                  'accept_terms_conditions', 'public_key']
 
 
     def create(self, validated_data):
@@ -95,6 +96,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             celular=validated_data['celular'],
             telefono=validated_data.get('telefono', ''),
             accept_terms_conditions=validated_data['accept_terms_conditions'],
+            public_key=validated_data.get('public_key', ''),
         )
         user.set_password(validated_data['password'])
         user.save()

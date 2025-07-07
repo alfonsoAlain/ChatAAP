@@ -9,6 +9,7 @@ class Usuario(AbstractUser):
     telefono = models.CharField(max_length=15, blank=True, null=True)  
     email = models.EmailField(unique=True)  
     accept_terms_conditions = models.BooleanField(default=False)
+    public_key = models.TextField(blank=True, null=True)
 
     # Añade related_name para evitar conflictos  
     groups = models.ManyToManyField(  

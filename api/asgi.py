@@ -22,28 +22,15 @@ django.setup()
 # Importar módulos que dependen de Django
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
 
-from cartera.middleware import JWTAuthMiddleware
-# from partido.routing import websocket_urlpatterns  # Asegúrate de usar el nombre correcto de la app
-
-# Mostrar el valor de la variable de entorno (puedes eliminar esto en producción)
-# print(f"DJANGO_SETTINGS_MODULE: {os.environ.get('DJANGO_SETTINGS_MODULE')}")
-
-# Definir la aplicación ASGI
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
-
-import partido.routing
-import equipo.routing
-import cartera.routing
+from message.middleware import JWTAuthMiddleware
+import message.routing
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": JWTAuthMiddleware(
         URLRouter(
-            partido.routing.websocket_urlpatterns +
-            equipo.routing.websocket_urlpatterns +
-            cartera.routing.websocket_urlpatterns
+            message.routing.websocket_urlpatterns
 
         )
     ),
