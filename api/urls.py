@@ -24,5 +24,6 @@ urlpatterns = ([
     path('admin/', admin.site.urls),
     path('api/v1/', include('usuario.urls')),  # Prefijo para la app usuario
     path('api/v1/', include('message.urls')),
+    # path('api/v1/', include('configuracion.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)+
   static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT))

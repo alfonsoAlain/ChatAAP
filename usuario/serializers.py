@@ -110,3 +110,15 @@ class UsuarioRankingSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'username', 'nombre', 'apellido']
 
+
+class UsuarioChatSerializer(serializers.ModelSerializer):
+    profile_image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Usuario
+        fields = ['id', 'username', 'nombre', 'apellido', 'profile_image', 'public_key']
+
+    def get_profile_image(self, obj):
+        if obj.profile_image:
+            return obj.profile_image.url
+        return None

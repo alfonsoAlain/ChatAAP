@@ -2,10 +2,11 @@
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
+
 from .models import ChatMessage
-from .serializers import ChatMessageSerializer, ChatSummarySerializer
+from .serializers import ChatMessageSerializer, ConversationStartSerializer, ChatMessageDetailedSerializer
 from django.db.models import Max, Q
 from django.contrib.auth import get_user_model
 
@@ -29,7 +30,6 @@ class ChatSummaryView(APIView):
     def get(self, request):
         user = request.user
 
-        # Agrupar por conversation_id y obtener timestamp más reciente
         latest_messages = (
             ChatMessage.objects
             .filter(Q(sender=user) | Q(receiver=user))
@@ -45,7 +45,6 @@ class ChatSummaryView(APIView):
             if not conv_id:
                 continue
 
-            # Buscar el mensaje más reciente de esa conversación
             last_message = (
                 ChatMessage.objects
                 .filter(conversation_id=conv_id)
@@ -56,22 +55,29 @@ class ChatSummaryView(APIView):
             if not last_message:
                 continue
 
-            contact = (
-                last_message.receiver if last_message.sender == user
-                else last_message.sender
-            )
+            # Determinar contacto
+            contact = last_message.receiver if last_message.sender == user else last_message.sender
+
+            # Determinar la clave AES para el usuario actual
+            if user == last_message.receiver:
+                aes_key_for_me = last_message.aes_key_for_receiver
+            elif user == last_message.sender:
+                aes_key_for_me = last_message.aes_key_for_sender
+            else:
+                aes_key_for_me = None
 
             summaries.append({
-                'conversation_id': conv_id,
-                'contact_name': contact.username,
-                'profile_image': request.build_absolute_uri(contact.profile_image.url) if contact.profile_image else None,
-                'last_message': last_message.message,
-                'last_timestamp': last_message.timestamp,
-                'receiver_id': contact.id
+                "conversation_id": conv_id,
+                "contact_name": contact.username,
+                "profile_image": request.build_absolute_uri(contact.profile_image.url) if getattr(contact, 'profile_image', None) else None,
+                "last_message": last_message.content_encrypted,
+                "last_timestamp": last_message.timestamp,
+                "receiver_id": contact.id,
+                "public_key": contact.public_key,
+                "aes_key_for_me": aes_key_for_me,
             })
 
-        serializer = ChatSummarySerializer(summaries, many=True)
-        return Response(serializer.data)
+        return Response(summaries)
 
 
 class ConversationMessagesView(APIView):
@@ -80,7 +86,6 @@ class ConversationMessagesView(APIView):
     def get(self, request, conversation_id):
         user = request.user
 
-        # Asegura que el usuario sea parte de la conversación
         messages = ChatMessage.objects.filter(
             conversation_id=conversation_id
         ).filter(
@@ -89,11 +94,15 @@ class ConversationMessagesView(APIView):
 
         messages.update(is_read=True)
 
-        serializer = ChatMessageSerializer(messages, many=True)
+        serializer = ChatMessageDetailedSerializer(
+            messages,
+            many=True,
+            context={'user': user, 'request': request}
+        )
 
         return Response(serializer.data)
 
-# views.py
+
 class StartConversationView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -110,21 +119,31 @@ class StartConversationView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Usuario no encontrado'}, status=404)
 
-        # Generar ID único en base a los IDs ordenados
         conversation_id = f"{min(user_one.id, user_two.id)}_{max(user_one.id, user_two.id)}"
 
-        # Opcional: puedes crear un mensaje vacío si no hay ninguno todavía
-
-        # Determinar el contacto: si yo soy user_one, el contacto es user_two y viceversa
         contact = user_two if user_one != user_two else user_one
 
         response_data = {
             "conversation_id": conversation_id,
             "contact_name": contact.username,
-            "profile_image": request.build_absolute_uri(contact.profile_image.url) if hasattr(contact, 'profile_image') and contact.profile_image else None,
-            "last_message": "",  # Podrías buscar el último mensaje si quieres
-            "last_timestamp": timezone.now(),  # o el del último mensaje real
-            "receiver_id": contact.id
+            "profile_image": request.build_absolute_uri(contact.profile_image.url) if getattr(contact, 'profile_image', None) else None,
+            "last_message": "",
+            "last_timestamp": timezone.now(),
+            "receiver_id": contact.id,
+            "public_key": contact.public_key,  # sin condicional aquí
         }
 
-        return Response(response_data)
+        print("DEBUG StartConversation response_data:", response_data)
+
+        serializer = ConversationStartSerializer(response_data)  # instancia, no data=
+        return Response(serializer.data)
+
+class GrupoMessagesList(generics.ListAPIView):
+    serializer_class = ChatMessageSerializer
+
+    def get_queryset(self):
+        return ChatMessage.objects.filter(
+            (Q(aes_key_for_sender__isnull=True) | Q(aes_key_for_sender='')),
+            (Q(aes_key_for_receiver__isnull=True) | Q(aes_key_for_receiver=''))
+        ).order_by('timestamp')
+

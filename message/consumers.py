@@ -34,27 +34,51 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        message = data['message']
+
+        content = data['content_encrypted']
+        aes_sender = data['aes_key_for_sender']
+        aes_receiver = data['aes_key_for_receiver']
         receiver_id = data['receiver_id']
 
         sender = self.scope["user"]
         receiver = await self.get_user(receiver_id)
 
-        msg = await self.create_message(sender, receiver, message)
+        msg = await self.create_message(sender, receiver, content, aes_sender, aes_receiver)
 
-        # Emitimos solo desde aquí
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat.message',
-                'message': msg
+                'message': {
+                    'id': msg.id,
+                    'conversation_id': msg.conversation_id,
+                    'sender': msg.sender.id,
+                    'receiver': msg.receiver.id,
+                    'message': msg.content_encrypted,
+                    'timestamp': msg.timestamp.isoformat(),
+                    'is_read': msg.is_read,
+                    'aes_key_for_receiver': msg.aes_key_for_receiver,
+                    'aes_key_for_sender': msg.aes_key_for_sender,
+                }
             }
         )
 
     async def chat_message(self, event):
+        message = event['message']
+
         await self.send(text_data=json.dumps({
             'type': 'chat.message',
-            'message': event['message']
+            'message': {
+                'id': message['id'],
+                'conversation_id': message['conversation_id'],
+                'sender': message['sender'],
+                'receiver': message['receiver'],
+                'message': message['message'],
+                'timestamp': message['timestamp'],
+                'is_read': message['is_read'],
+                'aes_key_for_receiver': message['aes_key_for_receiver'],
+                'aes_key_for_sender': message['aes_key_for_sender'],
+            }
         }))
 
     @database_sync_to_async
@@ -62,17 +86,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return User.objects.get(id=user_id)
 
     @database_sync_to_async
-    def create_message(self, sender, receiver, message):
-        # Señal no debe emitir
+    def create_message(self, sender, receiver, content, aes_sender, aes_receiver):
         skip_emit()
-
         chat_message = ChatMessage.objects.create(
             sender=sender,
             receiver=receiver,
-            message=message,
+            content_encrypted=content,
+            aes_key_for_sender=aes_sender,
+            aes_key_for_receiver=aes_receiver,
             conversation_id=self.conversation_id
         )
-        return ChatMessageSerializer(chat_message).data
+        return chat_message
+        # return ChatMessageSerializer(chat_message, context={'user': sender}).data
 
     @database_sync_to_async
     def get_messages(self):
