@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from datetime import timedelta
+from logging import DEBUG
 from pathlib import Path
 from django.urls import reverse_lazy
 
@@ -23,12 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i5u=z(7gz4xu!k9vo@vtjst*+v5#_zazgu=uvu30&zk!7ovw^3'
+SECRET_KEY = os.environ.get('SECRET_KEY', default='asasasasas')
+# SECRET_KEY = 'django-insecure-i5u=z(7gz4xu!k9vo@vtjst*+v5#_zazgu=uvu30&zk!7ovw^3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', "10.0.2.2"]
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:4200", "https://invesport-latam.com"]
 CORS_ALLOW_ALL_ORIGINS = True
