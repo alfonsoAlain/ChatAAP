@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
+    nombre = serializers.SerializerMethodField()
+    apellido = serializers.SerializerMethodField()
     class Meta:
         model = Usuario
         fields = [
@@ -24,6 +26,16 @@ class UsuarioSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}  # Asegúrate de que la contraseña no se devuelva en las respuestas  
         }
+
+    def get_nombre(self, obj):
+        if not obj.nombre or obj.nombre.strip().lower() == "no definido":
+            return obj.username
+        return obj.nombre
+
+    def get_apellido(self, obj):
+        if not obj.apellido or obj.apellido.strip().lower() == "no definido":
+            return obj.username
+        return obj.apellido
 
     def create(self, validated_data):
         # Comprobar si el username o email ya existe  
@@ -79,6 +91,8 @@ User = get_user_model()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    nombre = serializers.SerializerMethodField()
+    apellido = serializers.SerializerMethodField()
 
     class Meta:
         model = Usuario
@@ -122,3 +136,9 @@ class UsuarioChatSerializer(serializers.ModelSerializer):
         if obj.profile_image:
             return obj.profile_image.url
         return None
+
+    def get_nombre(self, obj):
+        return obj.nombre if obj.nombre else obj.username
+
+    def get_apellido(self, obj):
+        return obj.apellido if obj.apellido else obj.username
