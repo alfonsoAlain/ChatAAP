@@ -23,7 +23,7 @@ from allauth.account.views import ConfirmEmailView
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]  # Permitir el acceso a cualquier usuario   
+    permission_classes = [IsAuthenticated]  # Permitir el acceso a cualquier usuario
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
@@ -42,9 +42,11 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             print(f"Serializer errors: {serializer.errors}")
             return Response({"error": "Error al crear el usuario"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def list(self, request, *args, **kwargs):
-        print('Users:', self.queryset)
-        return super().list(request, *args, **kwargs)
+    def get_queryset(self):
+        return Usuario.objects.exclude(id=self.request.user.id)
+    # def list(self, request, *args, **kwargs):
+    #     print('Users:', self.queryset)
+    #     return super().list(request, *args, **kwargs)
 
 
 logger = logging.getLogger(__name__)

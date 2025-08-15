@@ -2,7 +2,7 @@
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from rest_framework.permissions import IsAuthenticated
 
 from .models import ChatMessage
@@ -146,4 +146,17 @@ class GrupoMessagesList(generics.ListAPIView):
             (Q(aes_key_for_sender__isnull=True) | Q(aes_key_for_sender='')),
             (Q(aes_key_for_receiver__isnull=True) | Q(aes_key_for_receiver=''))
         ).order_by('timestamp')
+
+class DeleteConversationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, conversation_id):
+        user = request.user
+        # Solo borrar mensajes donde el usuario sea sender o receiver
+        messages = ChatMessage.objects.filter(conversation_id=conversation_id).filter(
+            Q(sender=user) | Q(receiver=user)
+        )
+        deleted_count = messages.count()
+        messages.delete()
+        return Response({"deleted_messages": deleted_count}, status=status.HTTP_200_OK)
 
