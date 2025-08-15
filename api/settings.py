@@ -30,11 +30,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='asasasasas')
 # SECRET_KEY = 'django-insecure-i5u=z(7gz4xu!k9vo@vtjst*+v5#_zazgu=uvu30&zk!7ovw^3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+DEBUG = True
+# DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-# ALLOWED_HOSTS = ['127.0.0.1', 'localhost', "10.0.2.2"]
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', "10.0.2.2"]
+# ALLOWED_HOSTS = ['*']
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -138,8 +138,24 @@ WSGI_APPLICATION = 'api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    "default": dj_database_url.config(default=os.getenv("DATABASE_URL"))
+if os.getenv("RENDER"):  # Render.com coloca la variable de entorno RENDER=1
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+# DATABASES = {
+    # "default": dj_database_url.config(default=os.getenv("DATABASE_URL"))
     # 'default': {
     #    'ENGINE': 'django.db.backends.mysql',
     #    'NAME': 'inversor',
@@ -148,11 +164,11 @@ DATABASES = {
     #    'HOST': '172.17.0.1',  # o la IP del servidor MySQL si no está en local
     #    'PORT': '3306',  # el puerto por defecto de MySQL
     # }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
-}
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 # Imprescindible para relacionar user con mi tabla usuario
 AUTH_USER_MODEL = 'usuario.Usuario'
 

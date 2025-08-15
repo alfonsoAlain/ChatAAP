@@ -91,21 +91,25 @@ User = get_user_model()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    nombre = serializers.SerializerMethodField()
-    apellido = serializers.SerializerMethodField()
+    nombre = serializers.CharField(required=False, allow_blank=True)
+    apellido = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Usuario
-        fields = ['username', 'email', 'password', 'nombre', 'apellido', 'documento', 'celular', 'telefono',
-                  'accept_terms_conditions', 'public_key']
-
+        fields = [
+            'username', 'email', 'password', 'nombre', 'apellido', 'documento',
+            'celular', 'telefono', 'accept_terms_conditions', 'public_key'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def create(self, validated_data):
         user = Usuario(
             username=validated_data['username'],
             email=validated_data['email'],
-            nombre=validated_data['nombre'],
-            apellido=validated_data['apellido'],
+            nombre=validated_data.get('nombre', ''),
+            apellido=validated_data.get('apellido', ''),
             documento=validated_data['documento'],
             celular=validated_data['celular'],
             telefono=validated_data.get('telefono', ''),
@@ -114,9 +118,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
-
         return user
 
+    def to_representation(self, instance):
+        """Al devolver datos, calculamos nombre/apellido si están vacíos."""
+        rep = super().to_representation(instance)
+        if not rep.get('nombre'):
+            rep['nombre'] = instance.username.split()[0] if instance.username else ''
+        if not rep.get('apellido'):
+            rep['apellido'] = instance.username.split()[1] if instance.username and len(instance.username.split()) > 1 else ''
+        return rep
 
 class UsuarioRankingSerializer(serializers.ModelSerializer):
 
